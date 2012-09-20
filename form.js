@@ -194,12 +194,10 @@ var FORM = (function ($, window) {
 
       FORM.conf.loc = val;
 
-      
       // Have to check if the tckServerType here === cert and turn off
       // the domestic/intl elqName postfixing to support a hack Mario needs
       // to do to keep TCK's testing stuff pointed to their cert server.
       
-
       if (val === 'us') {
         if (tck === 'cert') {
           $('input[name=elqFormName]').val(elqn);
