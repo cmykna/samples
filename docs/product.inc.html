@@ -1,0 +1,134 @@
+<!DOCTYPE html>  <html> <head>   <title>product.inc.php</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="form.html">                 form.js               </a>                                           <a class="source" href="hmh.init.html">                 hmh.init.js               </a>                                           <a class="source" href="product.inc.html">                 product.inc.php               </a>                                           <a class="source" href="refactoring.html">                 refactoring.php               </a>                                           <a class="source" href="router.html">                 router.php               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               product.inc.php             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="cp">&lt;?php</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Various product lookups for the homeworks site.</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Retrieve a list of products from the db based on a discipline and a slug.
+Used to generate subject landing pages like the one found <a href="http://www.hmheducation.com/homeworks/science.php?q=9-12/chemistry">here</a></p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nc">ProductList</span>
+<span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Put this in at some point to help debug one of PHP's not-at-all annoying
+silent crashes. Orthogonal to the actual functionality of the class.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="k">public</span> <span class="k">function</span> <span class="nf">__call</span><span class="p">(</span><span class="nv">$name</span><span class="p">,</span> <span class="nv">$args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="s2">&quot;Missing method called : </span><span class="si">$name</span><span class="s2">, &quot;</span><span class="o">.</span><span class="nb">implode</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="nv">$args</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">private</span> <span class="nv">$db</span><span class="p">;</span>
+
+  <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nv">$currentDiscipline</span><span class="p">,</span> <span class="nv">$currentSlug</span><span class="p">,</span> <span class="nv">$db</span><span class="p">,</span> <span class="nv">$callPage</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">currentDiscipline</span> <span class="o">=</span> <span class="nv">$currentDiscipline</span><span class="p">;</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">currentSlug</span> <span class="o">=</span> <span class="nv">$currentSlug</span><span class="p">;</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span> <span class="o">=</span> <span class="nv">$db</span><span class="p">;</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">callPage</span> <span class="o">=</span> <span class="nv">$callPage</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">display</span><span class="p">()</span>
+  <span class="p">{</span>
+    <span class="nv">$db</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span><span class="p">;</span>
+    <span class="nv">$stmt</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM hw_products </span>
+<span class="s2">                WHERE slug = &#39;</span><span class="si">{</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">currentSlug</span><span class="si">}</span><span class="s2">&#39; </span>
+<span class="s2">                AND discipline = &#39;</span><span class="si">{</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">callPage</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">);</span>
+    <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+    <span class="nv">$result</span> <span class="o">=</span> <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">fetchAll</span><span class="p">();</span>
+    <span class="k">return</span> <span class="nv">$result</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Retrieve the info we need to generate a product detail view.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nc">ProductDetail</span>
+<span class="p">{</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">__call</span><span class="p">(</span><span class="nv">$name</span><span class="p">,</span> <span class="nv">$args</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="s2">&quot;Missing method called : </span><span class="si">$name</span><span class="s2">, &quot;</span><span class="o">.</span><span class="nb">implode</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="nv">$args</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">private</span> <span class="nv">$db</span><span class="p">;</span>
+  <span class="k">private</span> <span class="nv">$isbn</span><span class="p">;</span>
+
+  <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nv">$db</span><span class="p">,</span> <span class="nv">$isbn</span><span class="p">,</span> <span class="nv">$slug</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span> <span class="o">=</span> <span class="nv">$db</span><span class="p">;</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isbn</span> <span class="o">=</span> <span class="nv">$isbn</span><span class="p">;</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">slug</span> <span class="o">=</span> <span class="nv">$slug</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">details</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$db</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isbn</span> <span class="o">==</span> <span class="s2">&quot;details&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nv">$stmt</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM hw_products </span>
+<span class="s2">                  WHERE isbn == &#39;</span><span class="si">{</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isbn</span><span class="si">}</span><span class="s2">&#39;</span>
+<span class="s2">                  AND slug == &#39;</span><span class="si">{</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">slug</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nv">$stmt</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM hw_products WHERE isbn == &#39;</span><span class="si">{</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isbn</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+    <span class="nv">$result</span> <span class="o">=</span> <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">fetchObject</span><span class="p">();</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Add path and ext to product image</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">foreach</span> <span class="p">(</span><span class="k">array</span><span class="p">(</span><span class="s2">&quot;.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;.png&quot;</span><span class="p">,</span> <span class="s2">&quot;.gif&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="nv">$ext</span><span class="p">)</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Check from docroot</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">$filename</span> <span class="o">=</span> <span class="nx">__MY_LOCAL_IMAGES__</span><span class="o">.</span><span class="nv">$result</span><span class="o">-&gt;</span><span class="na">image</span><span class="o">.</span><span class="nv">$ext</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nb">file_exists</span><span class="p">(</span><span class="nv">$filename</span><span class="p">))</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Prepend http hostname</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">$result</span><span class="o">-&gt;</span><span class="na">image</span> <span class="o">=</span> <span class="nx">__MY_IMAGES__</span><span class="o">.</span><span class="nv">$result</span><span class="o">-&gt;</span><span class="na">image</span><span class="o">.</span><span class="nv">$ext</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nv">$result</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">FeaturedProducts</span>
+<span class="p">{</span>
+
+  <span class="k">private</span> <span class="nv">$db</span><span class="p">;</span>
+
+  <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nv">$db</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span> <span class="o">=</span> <span class="nv">$db</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">getDetails</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$db</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span><span class="p">;</span>
+    <span class="nv">$rowNumber</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="nv">$stmt</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM hw_featured WHERE display = 1&#39;</span><span class="p">);</span>
+    <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+    <span class="nv">$result</span> <span class="o">=</span> <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">fetchAll</span><span class="p">();</span>
+    <span class="k">return</span> <span class="nv">$result</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>Retreive a product based on its ISBN.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nc">ISBNLookup</span>
+<span class="p">{</span>
+
+  <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nv">$isbns</span><span class="p">,</span> <span class="nv">$db</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span> <span class="o">=</span> <span class="nv">$db</span><span class="p">;</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isbns</span> <span class="o">=</span> <span class="nv">$isbns</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">getDetails</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$db</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span><span class="p">;</span>
+    <span class="k">foreach</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">isbns</span> <span class="k">as</span> <span class="nv">$isbn</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nv">$stmt</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM hw_products WHERE isbn = </span><span class="si">{</span><span class="nv">$isbn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">);</span>
+      <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+      <span class="nv">$result</span><span class="p">[</span><span class="nv">$isbn</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">fetch</span><span class="p">(</span><span class="nx">PDO</span><span class="o">::</span><span class="na">FETCH_ASSOC</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nv">$result</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Retreive products by name, optionally limiting the results.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nc">NameLookup</span> 
+<span class="p">{</span>
+
+  <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nv">$searchString</span><span class="p">,</span> <span class="nv">$column</span><span class="p">,</span> <span class="nv">$db</span><span class="p">,</span> <span class="nv">$limit</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span> <span class="o">=</span> <span class="nv">$db</span><span class="p">;</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">col</span> <span class="o">=</span> <span class="nv">$column</span><span class="p">;</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">str</span> <span class="o">=</span> <span class="nv">$searchString</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">is_int</span><span class="p">(</span><span class="nv">$limit</span><span class="p">))</span> <span class="p">{</span>
+      <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">limit</span> <span class="o">=</span> <span class="nv">$limit</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">limit</span> <span class="o">=</span> <span class="k">FALSE</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">getDetails</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$db</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">db</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">limit</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nv">$stmt</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM hw_products </span>
+<span class="s1">                    WHERE &quot;&#39;</span><span class="o">.</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">col</span><span class="o">.</span><span class="s1">&#39;&quot; LIKE &quot;&#39;</span><span class="o">.</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">str</span><span class="o">.</span><span class="s1">&#39;&quot; LIMIT &#39;</span><span class="o">.</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">limit</span><span class="p">);</span>
+
+      <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="nv">$stmt</span> <span class="o">=</span> <span class="nv">$db</span><span class="o">-&gt;</span><span class="na">prepare</span><span class="p">(</span><span class="s1">&#39;SELECT * FROM hw_products </span>
+<span class="s1">                    WHERE &quot;&#39;</span><span class="o">.</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">col</span><span class="o">.</span><span class="s1">&#39;&quot; LIKE &quot;&#39;</span><span class="o">.</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">str</span><span class="o">.</span><span class="s1">&#39;&quot;&#39;</span><span class="p">);</span>
+      <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="nv">$result</span> <span class="o">=</span> <span class="nv">$stmt</span><span class="o">-&gt;</span><span class="na">fetchAll</span><span class="p">();</span>
+    <span class="k">return</span> <span class="nv">$result</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
