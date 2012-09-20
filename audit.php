@@ -1,4 +1,6 @@
 <?php
+// A site walker using simple_dom. Used to generate excel spreadsheets for 
+// a content audit.
 header("Content-type: text/html; charset=utf-8");
 define('BASE_URL', 'http://www.hmheducation.com/');
 define('UTILS_PATH', $_SERVER['DOCUMENT_ROOT'].'/utils/');
@@ -27,14 +29,12 @@ function getPageResources($html) {
 		foreach ($resourceTypes as $t) {
 			if (strpos($e->href, $t)) {
 				$pageResources[] = strtoupper($t);
-				// $pageResources = strtoupper($t).": ".$e->plaintext.": ".$e->href."<br/>";
 			}				
 		}
 	}
 	foreach ($html->find('.buffer img') as $e) {
 		foreach ($imageTypes as $i) {
 			if (strpos($e->src, $i)) {
-				// $pageResources .= strtoupper($i).": ".$e->src."<br/>";
 				$pageResources[] = strtoupper($i);
 			}
 		}
@@ -47,7 +47,6 @@ function collectHeaderURLs($html) {
 	$headerURLs = array();
 	if ($html->find('div#top-nav')) 
 	{
-		// echo "<p>Template version: 1.0</p>";
 		foreach ($html->find('div#top-nav a') as $e) 
 		{
 			if (!$e->find('img[src$=facebook.png]') && !$e->find('img[src$=twitter.png]')) 
@@ -65,7 +64,6 @@ function collectHeaderURLs($html) {
 	} 
 	elseif ($html->find('nav#top-nav')) 
 	{
-		// echo "<p>Template version: Honeybadger</p>";
 		foreach ($html->find('nav#top-nav a') as $e) 
 		{
 			if ($e->find('img[src$=buy-now.png]')) 
@@ -102,13 +100,13 @@ function generateHomepageDescription($html) {
 function extractFirstParagraph($html) {
 	if ($html->find('.buffer')) {
 		$firstPara = $html->find('.buffer p');
-		// Some of the older sites have first-child <p>
+		// Some of the older sites have first-child p
 		// elements with images in them, which return an
 		// empty string when their plaintext property is 
 		// queried (lookin' at you, /careerpathways). To 
 		// get around this, we can loop through ALL of .buffer's
-		// <p> children and return the first plaintext that's
-		// not '', then break out of the loop.
+		// p children and return the first plaintext that's
+		// not the empty string, then break out of the loop.
 		foreach ($firstPara as $p) {
 			$t = $p->plaintext;
 			if ($t === '' OR $t === '&nbsp;') {
@@ -145,9 +143,7 @@ function getGradeLevel($shortName) {
 }
  
 // Blastoff!
-// $debugArray = array("tx" => "http://www.hmheducation.com/tx/");
 foreach ($debugArray as $shortName => $micrositeURL):
-// foreach ($micrositesOnProd as $shortName => $micrositeURL):
 	echo "Crawling $micrositeURL...<br/>";
 	ob_start(); // Main OB
 	$siteBeingCrawled = $micrositeURL;
@@ -162,7 +158,6 @@ foreach ($debugArray as $shortName => $micrositeURL):
 		file_put_contents(LOGFILE, $log);
 		continue;
 	}
-	// $html = file_get_html($siteBeingCrawled);
 
 	// We're on the homepage now. Let's populate the first table row:
 	foreach ($html->find('title') as $e):
@@ -171,7 +166,8 @@ foreach ($debugArray as $shortName => $micrositeURL):
 		generateHomepageDescription($html);
 	endforeach;
 
-	ob_start(); // OB 2
+	// Start OB 2
+	ob_start();  
 	?>
 	<tr class=xl71 height=70 style='height:70.0pt'>
 		<td height=70 class=xl94 width=94 style='height:70.0pt;width:94pt'><?php echo $sectionTitle; ?> Homepage</td>
@@ -193,13 +189,13 @@ foreach ($debugArray as $shortName => $micrositeURL):
 		<td class=xl78 width=77 style='width:77pt'>&nbsp;</td>
 	</tr>
 	<?php
-	$homeRow = ob_get_clean(); // End OB 2
+	// End OB 2
+	$homeRow = ob_get_clean(); 
 
 	// Crawling the rest of the top-level pages
 	$urlToCrawl = collectHeaderURLs($html);
 	$topLevelPages = array();
 	foreach ($urlToCrawl as $sectionTitle => $url) {
-	// echo "crawling {$url}";
 		if ($sectionTitle !== "Buy Now") {
 
 			try {
@@ -217,16 +213,19 @@ foreach ($debugArray as $shortName => $micrositeURL):
 			// Uh, did we actually get anything?
 			if ($html) {
 				// Now we're crawling top-level links.
+
+				// Page title for our most common 2-column layout
 				if ($html->find('#content-right') && $html->find('.buffer h1')) {
-					foreach ($html->find('h1') as $e) { // Page title for our most common 2-column layout
-						// echo "<h2>{$e->plaintext} [$url]</h2>";
+					foreach ($html->find('h1') as $e) { 
 						$topLevelPageHeader = $e->plaintext;
 					}
-				} else if (!$html->find('#content-right') && $html->find('.buffer h1')) { // Page title for rarer one-column layouts.
+				// Page title for rarer one-column layouts.
+				} else if (!$html->find('#content-right') && $html->find('.buffer h1')) { 
 					foreach ($html->find('h1') as $e) {
 						$topLevelPageHeader = $e->plaintext;
 					}
-				} else if (!$html->find('.buffer h1')) { // Some ridiculous pages don't have H1s, so we'll use the page title
+				// Some ridiculous pages don't have H1s, so we'll use the page title	
+				} else if (!$html->find('.buffer h1')) { 
 					foreach ($html->find('title') as $e) {
 						$topLevelPageHeader = $e->plaintext;
 					}
@@ -239,7 +238,9 @@ foreach ($debugArray as $shortName => $micrositeURL):
 					$contentType = "Static";
 				}
 				// Shove each top level page into a buffer
-				ob_start(); // OB 2
+				
+				// Start OB 2
+				ob_start(); 
 				?>
 				<tr class=xl71 height=70 style='height:70.0pt'>
 					<!-- Section title -->
@@ -271,23 +272,23 @@ foreach ($debugArray as $shortName => $micrositeURL):
 					<td class=xl78 width=77 style='width:77pt'>&nbsp;</td>
 				</tr>
 				<?php
-				$topLevelPageRow = ob_get_clean(); // End OB 2
+				// End OB 2
+				$topLevelPageRow = ob_get_clean(); 
 				$topLevelPages[] = $topLevelPageRow;
 
 				$secondaryUrlToCrawl = array();
 
 				foreach ($html->find('ul.tabs a') as $e) {
-					// echo "<p>Sidenav link: {$e->plaintext} <code>{$e->href}</code></p>";
 					$secondaryUrlToCrawl[] = $e->href;
 				}
 				foreach ($html->find('div.buffer a') as $e) {
-					// echo "<p>Buffer link: {$e->plaintext} <code>{$e->href}</code></p>";
 					$secondaryUrlToCrawl[] = $e->href;
 				}
 			} else { 
-				// Aw crap, no DOM object returned. This is usually because the Buy Now
-				// link detection is wonky.
-				ob_start(); // OB 2
+				// Aw crap, no DOM object returned. This is usually because of some abnormal markup somewhere on the page.
+				
+				// Start OB 2
+				ob_start(); 
 				?>
 				<tr class=xl71 height=70 style='height:70.0pt'>
 					<td colspan=17 class=xl94>Couldn't open a DOM for this URL.</td>
@@ -297,7 +298,8 @@ foreach ($debugArray as $shortName => $micrositeURL):
 				$topLevelPages[] = $topLevelPageRow;
 			}
 		} else if ($sectionTitle === "Buy Now") {
-			ob_start(); // Start OB 2
+			// Start OB 2
+			ob_start(); 
 			?>
 			<tr class=xl71 height=70 style='height:70.0pt'>
 				<td height=70 class=xl94 width=94 style='height:70.0pt;width:94pt'><?php echo $sectionTitle; ?></td>
@@ -319,7 +321,8 @@ foreach ($debugArray as $shortName => $micrositeURL):
 				<td class=xl78 width=77 style='width:77pt'>&nbsp;</td>
 			</tr>
 			<?php
-			$buyNowRow = ob_get_clean(); // End OB2
+			// End OB2
+			$buyNowRow = ob_get_clean(); 
 			$topLevelPages[] = $buyNowRow;
 		}
 	}	
